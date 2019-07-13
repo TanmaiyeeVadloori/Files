@@ -226,7 +226,7 @@ tags:
   FunctionCode: AssetVisualisation
   Stage: ${self:custom.stage}
   Deployment: ${self:custom.region}-${self:custom.stage}
-  AVVersion: 2.0.15
+  AVVersion: 2.0.16
 
 # ONLY FOR DEVELOP environments. Do NOT change sharedStacks for production environment
 sharedStacks:
