@@ -1,0 +1,268 @@
+#################################################################################################
+###################################### BASIC CONFIGURATION ######################################
+#################################################################################################
+
+contact: tanmaiyee.vadloori@aveva.com # used for tagging and sending licences (see documentation)
+stage: tanytest # unique stage (lowercase, maximum 8 characters)
+region: us-east-1
+awsProfile: ${opt:profile, 'default'}
+businessUnit: test
+
+# (dev | prod)  this will be used for tagging && mapping to correct Connect API / Identity Server && EnvironmentTag in SQLServer template
+environment: dev
+
+connectAccountId: 20253465-2a0b-4aea-9981-c3cd7a6f610a
+
+# The ARN of the user or role who will have administrative rights for the KMS CMK encryption key.
+encryptionKeyAdministratorArn: arn:aws:iam::623279624856:role/AssetVizDeveloperRole
+
+# the authentication provider to be used in WHDB, options are "OpenId" or "Connect"
+authenticationProvider: Connect
+
+# this KeyPair should be existing. It will be used to RDP to all EC2 instances.
+keyPairName: tanytest
+
+resourceBucket:
+  region: eu-west-1 # this can be any region (including region you are deploying to)
+  bucketName: aav-releases # bucket must exist
+  rootInstallersPath: ${self:custom.stage}/Installers
+  rootProvisioningPath: ${self:custom.stage}/Provisioning
+
+# init-s3 command will create if does not exist (see documentation)
+configurationBucket:
+  region: ${self:custom.region}
+  bucketName: aav-${self:custom.stage}
+
+# init-s3 command will create if does not exist (see documentation)
+databaseBackupBucket:
+  bucketName: aav-dbbackup-${self:custom.stage}
+
+# init-s3 command will create if does not exist (see documentation)
+avsdeploybucket:
+  bucketName: aav-avs-slsdeploy-${self:custom.region}-${self:custom.stage}
+
+amiIds:
+  Bastion: ${self:common.ami_Ids.bastion}
+  Licensing: ${self:common.ami_Ids.licensing}
+  Import: ${self:common.ami_Ids.importserver}
+  Accusoft: ${self:common.ami_Ids.accusoft}
+  WHDB: ${self:common.ami_Ids.whdb}
+  Gateways: ${self:common.ami_Ids.gw}
+  Decider: ${self:common.ami_Ids.decider}
+  Admin: ${self:common.ami_Ids.worker}
+  AVS: ${self:common.ami_Ids.avs}
+
+portalSettings:
+  ImportRootId: ${self:custom.businessUnit}
+  ImportRootClass: PLANT
+  ImportDatabaseId: ${self:custom.businessUnit}
+  ImportPackageId: ${self:custom.businessUnit}Pkg
+  DatabaseName:
+    prod: ${self:custom.businessUnit}Db
+    default: ${self:custom.stage}${self:custom.businessUnit}Db
+  DatabaseUsername: ${self:custom.businessUnit}DbUser
+  DatabaseUserPassword: ${self:custom.businessUnit}DbUser
+  SafeDomains: # list of safe URL domains (FQDNs) to use in InfoLocator attributes e.g.  support.xyz.com   Note the indentation and the - (dash) are important before the domain.
+    -
+    -
+  ImportServerLocale: en-GB # en-GB or en-US
+
+importUserSettings:
+  ExcelFilePath: "Users.xlsx"
+  # UsersAndRolesTopRow: 9
+  # RolesAndRightsTopRow: 19
+  # UsersAndRolesWorkSheet: 'User List'
+  # RolesAndRightsWorkSheet: 'Roles'
+  # IgnoreRights: '$false'
+  # ImportUsersRolesAndRightsFileName: ''
+
+migrateDeciderDatabaseSettings:
+  RdsDatabaseName: Decider-${self:custom.stage}
+  RdsUserName: aav-${self:custom.stage}
+  RdsEncryptedPassword: 76492d1116743f0423413b16050a5345MgB8AE4ANQBrAGgAbwBDAGYAdgA5ADUATgB2AHMASgBGAEwAUwAyAGMAVgAvAGcAPQA9AHwAMwBiAGEANQA0ADQANwA1ADYANQAzADcANwAwADAAMgAzAGEAMgAwADgAZQBjADUAYQAyADEAMQA5ADgANQBkADcAZAA5ADkAMQA4ADEAYQAyADEAOAA3ADIANQAyAGEANwBhADcAYgBiAGYANwA3AGEAZQBmADgAOQA3ADgANgA=
+
+#################################################################################################
+#################################### ADVANCED CONFIGURATION #####################################
+#################################################################################################
+
+# Only for production, don't change for develop environments
+secrets:
+  ImportReport:
+    Scope: PASTE_SCOPE_SECRET_HERE
+    Client: PASTE_CLIENT_SECRET_HERE
+  ImportProgress:
+    Scope: PASTE_SCOPE_SECRET_HERE
+    Client: PASTE_CLIENT_SECRET_HERE
+
+edgeLocation:
+  default: USEurope # All | USEurope | USEuropeAsia
+  prod: All # All | USEurope | USEuropeAsia
+
+ec2InstanceTypes:
+  default:
+    Licensing: t3.micro
+    Import: t3.medium
+    Accusoft: t3.medium
+    WHDB: t3.medium
+    Gateways: t3.small
+    Decider: t3.small
+    Admin: t3.small
+    Nat: t3.micro
+  prod:
+    Licensing: t3.medium
+    Import: m5.large
+    Accusoft: r4.xlarge
+    WHDB: m5.xlarge
+    Gateways: c5.xlarge
+    Decider: r4.xlarge
+    Admin: t3.small
+
+Database:
+  DBInstanceClass:
+    default: db.m4.large
+    prod: db.m4.xlarge
+  AllocatedStorage:
+    default: 200
+    prod: 1000
+  AutomatedManualSnapshot: disable # Valid values : {enable,disable}.
+  EnvironmentTag:
+    dev: Development
+    prod: Production
+  MasterCredentials:
+    userName: sa
+    password: gqRL0H7oPbUA
+  DeciderCredentials:
+    databaseName: Decider-test
+    userName: aav-test
+    password: Bienvenue1
+  RegisterCredentials:
+    databaseName: PartitionedRegisters-test
+    userName: aav-test
+    password: Bienvenue1
+  MultiAZ:
+    default: false
+    prod: false
+  SnapshotIdentifier: "" # Once used NEVER set back to quotes. Only change when running "restore-db" command. Don't change when running other commands. If you have changed this before for restoring db, leave it with the used SnapShotId.
+
+orchestration:
+  processTableCapacityMode: # valid values are highlyAvailable | lowCost
+    prod: highlyAvailable
+    default: lowCost
+
+ebsVolumeSizes:
+  Import: 120
+  Accusoft: 120
+
+operationInfo:
+  Import:
+    LastReviewDate: No info
+    LastPatch: No info
+    AVInstalled: "No" # Yes | No
+  Accusoft:
+    LastReviewDate: No info
+    LastPatch: No info
+    AVInstalled: "No" # Yes | No
+  WHDB:
+    LastReviewDate: No info
+    LastPatch: No info
+    AVInstalled: "No" # Yes | No
+  Admin:
+    LastReviewDate: No info
+    LastPatch: No info
+    AVInstalled: "No" # Yes | No
+
+autoScaling:
+  Accusoft:
+    Desired: 1
+    Max: 1
+    Min: 1
+  Admin:
+    Desired: 1
+    Max: 1
+    Min: 0
+  Decider:
+    Desired: 1
+    Max: 1
+    Min: 0
+  Gateways:
+    Desired: 1
+    Max: 1
+    Min: 0
+  Import:
+    Desired: 1
+    Max: 1
+    Min: 0
+  Licensing:
+    Desired: 2
+    Max: 3
+    Min: 2
+  WHDB:
+    Desired: 1
+    Max: 1
+    Min: 1
+
+# change this if you want to use different email address to inform load report subscribers of relevant support channels.
+loadReportSupportEmail: ${self:custom.contact}
+
+createAdminStack:
+  default: true
+  prod: true
+
+bootstrapMonitoringResources:
+  default: false
+  prod: false
+
+enableAVSDeployment:
+  default: false
+
+enableEncryptionKeyDeployment:
+  default: true
+
+# Optional: You can edit/add tags. But do NOT remove existing tags
+tags:
+  ID: AAV
+  Contact: ${self:custom.contact}
+  Environment: ${self:custom.environment}
+  FunctionCode: AssetVisualisation
+  Stage: ${self:custom.stage}
+  Deployment: ${self:custom.region}-${self:custom.stage}
+  AVVersion: 2.0.16
+
+# ONLY FOR DEVELOP environments. Do NOT change sharedStacks for production environment
+sharedStacks:
+  shareWithStage: existingStageName # this stage should have a full deployement. e.g. dev, dev1
+  names:
+    description: Do NOT remove/edit description. By default no stack will be shared, uncomment any component to share with an "existingStageName"
+    # EncryptionKey: ${self:common.stackNamePrefixes.EncryptionKey}-${self:custom.sharedStacks.shareWithStage}
+    # Lambda: ${self:common.stackNamePrefixes.Lambda}-${self:custom.sharedStacks.shareWithStage}
+    # Network: ${self:common.stackNamePrefixes.Network}-${self:custom.sharedStacks.shareWithStage}
+    # Bastion: ${self:common.stackNamePrefixes.Bastion}-${self:custom.sharedStacks.shareWithStage}
+    # SQLServerRDS: ${self:common.stackNamePrefixes.SQLServerRDS}-${self:custom.sharedStacks.shareWithStage}
+    # Licensing: ${self:common.stackNamePrefixes.Licensing}-${self:custom.sharedStacks.shareWithStage}
+    # Accusoft: ${self:common.stackNamePrefixes.Accusoft}-${self:custom.sharedStacks.shareWithStage}
+    # AVSResources: ${self:common.stackNamePrefixes.AVSResources}-${self:custom.sharedStacks.shareWithStage}
+
+# For base environments which provide shared stacks (e.g. dev) set this to false to avoid deploying the non-shared stacks.
+# All other environments should set this to true.
+nonSharedStacks:
+  deployComponents: true
+
+#################################################################################################
+#################################################################################################
+
+#################################################################################################
+###################################   CUSTOM COMMAND DEFINITION #################################
+### Define your custom commands in this section and execute them using following command
+### npm run-script custom-command -- --command [custom-command-name] --stage [stage] --profile [profile]
+
+### EXAMPLE
+## npm run-script custom-command -- --command example-update-s3-content --stage [stage] --profile [profile]
+
+#################################################################################################
+
+customCommands:
+  example-update-s3-content:
+    - init-s3
+    - post-deploy-s3-sync
+#################################################################################################
+#################################################################################################
